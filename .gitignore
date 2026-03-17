@@ -1,0 +1,26 @@
+# App
+app/node_modules/
+app/.next/
+app/out/
+app/.env.local
+app/tsconfig.tsbuildinfo
+
+# Old scripts
+*.pyc
+__pycache__/
+.scanner_helper.py
+scan.sh
+
+# Obsidian vault (personal)
+.obsidian/
+*.canvas
+Dashboard.md
+Config/
+Projects/
+
+# Claude local settings (personal)
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

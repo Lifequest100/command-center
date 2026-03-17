@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/* ── Design tokens ─────────────────────────────────────────────────── */
+:root {
+  --background: #080809;
+  --surface:    #0e0e10;
+  --surface-2:  #141416;
+  --border:     #1f1f23;
+  --border-2:   #2a2a30;
+  --foreground: #f4f4f5;
+  --muted:      #71717a;
+  --muted-2:    #52525b;
+
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245,158,11,0.12);
+  --amber-glow: rgba(245,158,11,0.06);
+
+  --emerald:    #10b981;
+  --purple:     #a78bfa;
+  --blue:       #60a5fa;
+  --rose:       #fb7185;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 14px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ── Reset & base ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100vh;
+  /* Subtle dot-grid atmosphere */
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(245,158,11,0.04) 0%, transparent 60%),
+    radial-gradient(#1f1f23 1px, transparent 1px);
+  background-size: 100% 100%, 28px 28px;
+}
+
+/* ── Scrollbars ────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted-2); }
+* { scrollbar-width: thin; scrollbar-color: var(--border-2) transparent; }
+
+/* ── Text selection ────────────────────────────────────────────────── */
+::selection { background: var(--amber-dim); color: var(--foreground); }
+
+/* ── Skeleton shimmer ──────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface)   0px,
+    var(--surface-2) 120px,
+    var(--surface)   240px
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+
+/* ── Glow utilities ────────────────────────────────────────────────── */
+.glow-amber {
+  box-shadow: 0 0 0 1px rgba(245,158,11,0.3), 0 0 20px rgba(245,158,11,0.08);
+}
+.glow-emerald {
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.25), 0 0 16px rgba(16,185,129,0.06);
+}
+
+/* ── Card base ─────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+.card:hover {
+  border-color: var(--border-2);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+.card-interactive {
+  cursor: pointer;
+}
+.card-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* ── Fade-in ───────────────────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.35s ease both;
+}
+
+/* ── React Flow overrides ──────────────────────────────────────────── */
+.react-flow__node {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+.react-flow__attribution { display: none !important; }
+.react-flow__background { opacity: 0.5; }
