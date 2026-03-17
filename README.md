@@ -2,6 +2,8 @@
 
 A local dashboard for managing your Claude Code setup — MCPs, plugins, skills, agents, and markdown memory files — across all your projects.
 
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss) ![License: MIT](https://img.shields.io/badge/License-MIT-green)
+
 ## Features
 
 | Feature | Description |
@@ -17,8 +19,7 @@ A local dashboard for managing your Claude Code setup — MCPs, plugins, skills,
 | **Session primers** | Per-project `primer.md` files Claude reads at session start and rewrites at end |
 | **Activity log** | History of every install, removal, and toggle |
 | **Config export** | Download your full Claude config as JSON |
-| **Command palette** | ⌘K to search and navigate everything |
-| **Keyboard shortcuts** | `R` rescan · `G` toggle graph · `L` activity log · `D`/`F` switch tabs · `Esc` back |
+| **Command palette** | `⌘K` / `Ctrl+K` to search and navigate everything |
 
 ## Prerequisites
 
@@ -30,10 +31,10 @@ A local dashboard for managing your Claude Code setup — MCPs, plugins, skills,
 ```bash
 # 1. Clone
 git clone https://github.com/your-username/claude-code-command-center
-cd claude-code-command-center/app
+cd claude-code-command-center
 
 # 2. Install dependencies
-npm install
+cd app && npm install
 
 # 3. Configure (optional — works with zero config for most setups)
 cp .env.local.example .env.local
@@ -51,7 +52,7 @@ All variables are optional. The app auto-detects sensible defaults.
 
 | Variable | Default | Description |
 |---|---|---|
-| `CLAUDE_CC_PROJECTS_DIR` | auto-detected | Directory containing your projects. Comma-separate for multiple: `~/Projects,~/work`. Auto-detects from `~/Desktop`, `~/Projects`, `~/projects`, `~/code`, `~/dev`, `~/workspace` |
+| `CLAUDE_CC_PROJECTS_DIR` | auto-detected | Directory (or comma-separated list) containing your projects. Auto-detects from `~/Desktop`, `~/Projects`, `~/projects`, `~/code`, `~/dev`, `~/workspace` |
 | `GITHUB_TOKEN` | — | GitHub Personal Access Token for Discover search. Without it you get 60 req/hr. Create at [github.com/settings/tokens](https://github.com/settings/tokens) with `public_repo` read scope |
 | `ANTHROPIC_API_KEY` | — | Enables the **AI Suggest** tab in Discover. Get yours at [console.anthropic.com](https://console.anthropic.com/settings/keys) |
 
@@ -59,7 +60,7 @@ All variables are optional. The app auto-detects sensible defaults.
 
 Each project can have a `primer.md` at its root. Claude reads it at the start of every session to restore context, then rewrites it at the end with what changed, next steps, and blockers.
 
-To enable this for a project, add a `CLAUDE.md` in the project root:
+Apply the **Primer Memory System** template from the Files → Templates tab, or add this to your project's `CLAUDE.md` manually:
 
 ```markdown
 At the start of every session, read `primer.md` to restore context.
@@ -71,7 +72,7 @@ At the end of every session, rewrite `primer.md` completely to reflect:
 - Open blockers
 ```
 
-The **Files** tab in Command Center lets you edit both files. The **Files → Templates** tab has a ready-made "Primer Memory System" template you can apply with one click.
+Project cards in the dashboard automatically derive their progress bar and next steps from `task.md`, `plan.md`, and `primer.md`.
 
 ## Keyboard shortcuts
 
@@ -88,31 +89,65 @@ The **Files** tab in Command Center lets you edit both files. The **Files → Te
 ## Project structure
 
 ```
-app/
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── scan/          Scans all Claude configs
-│   │   │   ├── mutate/        Toggle plugins, remove MCPs/agents/skills
-│   │   │   ├── files/         Read/write markdown files
-│   │   │   ├── discover/      GitHub search for augmentations
-│   │   │   ├── install/       Install MCPs/skills from GitHub
-│   │   │   ├── health/        Check if MCPs are reachable
-│   │   │   ├── suggest/       AI-powered augmentation suggestions
-│   │   │   ├── export/        Download config as JSON
-│   │   │   ├── activity/      Activity log CRUD
-│   │   │   ├── start-project/ Launch a project's dev server
-│   │   │   └── config/        Expose resolved paths to client
-│   │   └── page.tsx           Main dashboard
-│   ├── components/            UI components
-│   └── lib/
-│       ├── config.ts          Path resolution (env vars + auto-detect)
-│       ├── scanner.ts         Reads Claude configs and project directories
-│       ├── files.ts           Markdown file CRUD
-│       ├── activity.ts        Activity log (append-only NDJSON)
-│       └── templates.ts       CLAUDE.md template library
-└── .env.local.example         Environment variable template
+claude-code-command-center/
+├── README.md
+├── .gitignore
+└── app/                          Next.js application
+    ├── .env.local.example        Copy to .env.local and configure
+    ├── package.json
+    ├── tsconfig.json
+    └── src/
+        ├── app/
+        │   ├── layout.tsx        Root layout and metadata
+        │   ├── page.tsx          Main dashboard shell (tabs, keyboard shortcuts, palette)
+        │   └── api/
+        │       ├── scan/         Read all Claude configs and project directories
+        │       ├── mutate/       Toggle plugins, remove MCPs / agents / skills
+        │       ├── files/        Read and write markdown files
+        │       ├── discover/     GitHub repo search for augmentations
+        │       ├── install/      Install MCPs and skills from GitHub
+        │       ├── health/       Check whether MCP packages are reachable
+        │       ├── suggest/      AI-powered augmentation suggestions (Anthropic API)
+        │       ├── export/       Download full config as JSON
+        │       ├── activity/     Append-only activity log (NDJSON)
+        │       ├── start-project/ Launch a project's dev server in the background
+        │       └── config/       Expose resolved paths to client components
+        ├── components/
+        │   ├── project-card.tsx      Project card with status bar and Start button
+        │   ├── project-detail.tsx    Expanded project drawer
+        │   ├── global-overview.tsx   Top-level stat cards
+        │   ├── augmentation-panel.tsx MCPs, plugins, skills, agents panel
+        │   ├── discover-panel.tsx    GitHub search + AI suggest
+        │   ├── files-panel.tsx       Markdown file editor + templates
+        │   ├── graph-view.tsx        Interactive network graph (@xyflow/react)
+        │   ├── command-palette.tsx   ⌘K palette
+        │   └── activity-log.tsx      Activity log drawer
+        └── lib/
+            ├── config.ts         Path resolution — reads env vars, auto-detects home dirs
+            ├── scanner.ts        Parses Claude configs and derives project status
+            ├── files.ts          Markdown file CRUD helpers
+            ├── activity.ts       Activity log read/write (append-only NDJSON)
+            └── templates.ts      CLAUDE.md template definitions
 ```
+
+## Extending
+
+The codebase is designed to be straightforward to extend:
+
+**Add a new API route**
+Create `src/app/api/your-feature/route.ts`. Import from `src/lib/` for data access; keep route handlers thin.
+
+**Add a new UI panel**
+Create `src/components/your-panel.tsx`. Wire it into `page.tsx` alongside the existing tab or panel components.
+
+**Add a new CLAUDE.md template**
+Open `src/lib/templates.ts` and append a new entry to the `CLAUDE_TEMPLATES` array — it will appear automatically in the Files → Templates modal.
+
+**Add new project status signals**
+Edit `computeProjectStatus()` in `src/lib/scanner.ts` to parse additional files (e.g. a `roadmap.md`) and incorporate them into the progress percentage.
+
+**Add new fields to project scanning**
+Edit `scanProject()` and the `ProjectInfo` interface in `src/lib/scanner.ts`. The result flows automatically to project cards and the graph view.
 
 ## Activity log
 
