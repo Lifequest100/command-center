@@ -30,8 +30,8 @@ A local dashboard for managing your Claude Code setup — MCPs, plugins, skills,
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-username/claude-code-command-center
-cd claude-code-command-center
+git clone https://github.com/tomnewtoneng/command-center
+cd command-center
 
 # 2. Install dependencies
 cd app && npm install
