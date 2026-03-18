@@ -1,7 +1,7 @@
 "use client";
 
 import type { ScanResult } from "@/lib/scanner";
-import { Server, Plug, Bot, Wrench, Cpu } from "lucide-react";
+import { Server, Plug, Bot, Wrench, Cpu, Terminal } from "lucide-react";
 
 interface Props {
   data: ScanResult;
@@ -51,7 +51,7 @@ function StatCard({
 }
 
 export function GlobalOverview({ data }: Props) {
-  const { global, projects, allMCPs } = data;
+  const { global, projects, allMCPs, allCommands } = data;
   const uniqueMcps = new Set(allMCPs.map(m => m.name)).size;
   const projectMcps = allMCPs.filter(m => m.project).length;
 
@@ -60,7 +60,7 @@ export function GlobalOverview({ data }: Props) {
       <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-[var(--muted-2)]">
         Overview
       </h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         <StatCard
           icon={Cpu}
           label="Model"
@@ -100,6 +100,14 @@ export function GlobalOverview({ data }: Props) {
           sub={`${global.agents.length} global · ${data.allAgents.length - global.agents.length} project`}
           accentClass="bg-rose-500"
           iconBgClass="bg-rose-500/15 text-rose-400"
+        />
+        <StatCard
+          icon={Terminal}
+          label="Commands"
+          value={allCommands.length}
+          sub={`${global.commands.length} global`}
+          accentClass="bg-teal-500"
+          iconBgClass="bg-teal-500/15 text-teal-400"
         />
       </div>
     </section>
