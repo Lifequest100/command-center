@@ -105,8 +105,9 @@ export function AugmentationPanel({ data, onMutate }: Props) {
   }
 
   // Apply category filter to MCPs
-  const filteredMCPs = Array.from(mcpsByName.entries()).filter(([name]) => {
+  const filteredMCPs = Array.from(mcpsByName.entries()).filter(([name, info]) => {
     if (!categoryFilter) return true;
+    if (info.source === "oauth") return true; // OAuth MCPs always visible
     return getMCPCategory(name) === categoryFilter;
   });
 
@@ -160,7 +161,7 @@ export function AugmentationPanel({ data, onMutate }: Props) {
                   All
                 </button>
                 {ALL_CATEGORIES.map(cat => {
-                  const count = Array.from(mcpsByName.keys()).filter(n => getMCPCategory(n) === cat).length;
+                  const count = Array.from(mcpsByName.entries()).filter(([n, info]) => info.source !== "oauth" && getMCPCategory(n) === cat).length;
                   if (count === 0) return null;
                   return (
                     <button
