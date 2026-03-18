@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import type { ScanResult } from "@/lib/scanner";
 import {
-  Server, Plug, Bot, Wrench, Trash2,
+  Server, Plug, Bot, Wrench, Trash2, Terminal,
   ToggleLeft, ToggleRight, ChevronDown, ChevronRight,
   Activity, CheckCircle2, XCircle, HelpCircle, Loader2,
 } from "lucide-react";
@@ -353,6 +353,54 @@ export function AugmentationPanel({ data, onMutate }: Props) {
               ))}
               {data.allSkills.length === 0 && (
                 <p className="text-sm text-[var(--muted)] italic">No skills installed</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Commands ─────────────────────────────────────────── */}
+        <div className="card overflow-hidden">
+          <div
+            onClick={() => toggle("commands")}
+            className="flex w-full cursor-pointer items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-[var(--surface-2)]/60"
+          >
+            <div className="flex items-center gap-2.5">
+              <Terminal size={15} className="text-teal-400" />
+              <span className="text-sm font-medium text-[var(--foreground)]">Commands</span>
+              <span className="rounded-full bg-teal-500/15 px-2 py-0.5 text-xs text-teal-400">
+                {data.allCommands.length}
+              </span>
+            </div>
+            {expanded === "commands" ? <ChevronDown size={15} className="text-[var(--muted)]" /> : <ChevronRight size={15} className="text-[var(--muted)]" />}
+          </div>
+          {expanded === "commands" && (
+            <div className="border-t border-[var(--border)] px-5 py-3">
+              {Object.entries(
+                data.allCommands.reduce((acc, c) => {
+                  const key = c.scope === "global" ? `global / ${c.namespace}` : `${c.project}`;
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(c);
+                  return acc;
+                }, {} as Record<string, typeof data.allCommands>)
+              ).map(([group, cmds]) => (
+                <div key={group} className="mb-3 last:mb-0">
+                  <p className="mb-1.5 text-[11px] font-medium text-[var(--muted)]">
+                    {group} <span className="text-[var(--muted-2)]">({cmds.length})</span>
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {cmds.map(c => (
+                      <span
+                        key={`${c.namespace}-${c.name}`}
+                        className="rounded border border-teal-500/20 bg-teal-500/8 px-2 py-0.5 text-[10px] text-teal-400/80"
+                      >
+                        {c.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {data.allCommands.length === 0 && (
+                <p className="text-sm text-[var(--muted)] italic">No commands installed</p>
               )}
             </div>
           )}
