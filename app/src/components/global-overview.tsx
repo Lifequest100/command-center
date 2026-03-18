@@ -53,7 +53,7 @@ function StatCard({
 export function GlobalOverview({ data }: Props) {
   const { global, projects, allMCPs, allCommands } = data;
   const uniqueMcps = new Set(allMCPs.map(m => m.name)).size;
-  const projectMcps = allMCPs.filter(m => m.project).length;
+  const projectMcps = allMCPs.filter(m => m.source !== "oauth" && m.project !== "global").length;
 
   return (
     <section className="mb-8">

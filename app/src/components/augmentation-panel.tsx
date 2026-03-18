@@ -66,7 +66,7 @@ export function AugmentationPanel({ data, onMutate }: Props) {
 
   const checkHealth = useCallback(async () => {
     setCheckingHealth(true);
-    const keys = Array.from(new Set(data.allMCPs.map(m => m.name)));
+    const keys = Array.from(new Set(data.allMCPs.filter(m => m.source !== "oauth").map(m => m.name)));
     const loading: Record<string, HealthStatus> = {};
     keys.forEach(k => { loading[k] = "loading"; });
     setHealth(loading);
