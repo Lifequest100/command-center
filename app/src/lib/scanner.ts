@@ -248,7 +248,7 @@ function scanGlobalConfig(): GlobalConfig {
   const skills: SkillInfo[] = [];
   const skillsDir = join(CLAUDE_HOME, "skills");
   if (existsSync(skillsDir)) {
-    for (const ns of readdirSync(skillsDir)) {
+    for (const ns of readdirSync(skillsDir).sort()) {
       const nsPath = join(skillsDir, ns);
       if (statSync(nsPath).isDirectory()) {
         for (const f of readdirSync(nsPath).filter(f => f.endsWith(".md")).sort()) {
