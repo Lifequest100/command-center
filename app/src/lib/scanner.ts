@@ -29,12 +29,13 @@ function readText(path: string, maxLines = 50): string {
 export interface MCPServer {
   name: string;
   project: string;
-  source: "mcp.json" | "permissions";
+  source: "mcp.json" | "permissions" | "oauth";
   tools: string[];
   url?: string;
   hasAuth?: boolean;
   command?: string;
   args?: string[];
+  oauthProvider?: string;
 }
 
 export interface PluginInfo {
@@ -53,6 +54,13 @@ export interface AgentInfo {
 }
 
 export interface SkillInfo {
+  name: string;
+  namespace: string;
+  scope: "global" | "project";
+  project?: string;
+}
+
+export interface CommandInfo {
   name: string;
   namespace: string;
   scope: "global" | "project";
@@ -83,7 +91,9 @@ export interface GlobalConfig {
   plugins: PluginInfo[];
   agents: AgentInfo[];
   skills: SkillInfo[];
+  commands: CommandInfo[];
   hooks: Record<string, string[]>;
+  oauthMCPs: MCPServer[];
 }
 
 export interface ScanResult {
@@ -92,6 +102,7 @@ export interface ScanResult {
   projects: ProjectInfo[];
   allMCPs: MCPServer[];
   allSkills: SkillInfo[];
+  allCommands: CommandInfo[];
   allAgents: AgentInfo[];
   allPlugins: PluginInfo[];
 }
