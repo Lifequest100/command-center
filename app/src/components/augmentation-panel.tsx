@@ -85,19 +85,21 @@ export function AugmentationPanel({ data, onMutate }: Props) {
   }, [data.allMCPs]);
 
   // Group MCPs by name
-  const mcpsByName = new Map<string, { projects: string[]; tools: string[]; url?: string; command?: string; args?: string[] }>();
+  const mcpsByName = new Map<string, { projects: string[]; tools: string[]; url?: string; command?: string; args?: string[]; source: "oauth" | "local"; oauthProvider?: string }>();
   for (const mcp of data.allMCPs) {
     const existing = mcpsByName.get(mcp.name);
     if (existing) {
-      if (!existing.projects.includes(mcp.project)) existing.projects.push(mcp.project);
+      if (mcp.source !== "oauth" && !existing.projects.includes(mcp.project)) existing.projects.push(mcp.project);
       existing.tools = [...new Set([...existing.tools, ...mcp.tools])];
     } else {
       mcpsByName.set(mcp.name, {
-        projects: [mcp.project],
+        projects: mcp.source === "oauth" ? [] : [mcp.project],
         tools: [...mcp.tools],
         url: mcp.url,
         command: mcp.command,
         args: mcp.args,
+        source: mcp.source === "oauth" ? "oauth" : "local",
+        oauthProvider: mcp.oauthProvider,
       });
     }
   }
@@ -185,18 +187,28 @@ export function AugmentationPanel({ data, onMutate }: Props) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-sm text-[var(--foreground)]">{name}</span>
-                          {category && (
-                            <span className={`rounded-full border px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide capitalize ${CATEGORY_COLORS[category]}`}>
-                              {category}
+                          {info.source === "oauth" ? (
+                            <span className="rounded-full border border-violet-500/20 bg-violet-500/15 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-violet-400">
+                              OAuth · {info.oauthProvider ?? "claude.ai"}
                             </span>
+                          ) : (
+                            <>
+                              {category && (
+                                <span className={`rounded-full border px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide capitalize ${CATEGORY_COLORS[category]}`}>
+                                  {category}
+                                </span>
+                              )}
+                              <HealthBadge status={healthStatus} />
+                            </>
                           )}
-                          <HealthBadge status={healthStatus} />
                         </div>
-                        <div className="mt-1 flex items-center gap-1.5">
-                          {info.projects.map(p => (
-                            <span key={p} className="rounded bg-[var(--surface-2)] border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">{p}</span>
-                          ))}
-                        </div>
+                        {info.source === "local" && (
+                          <div className="mt-1 flex items-center gap-1.5">
+                            {info.projects.map(p => (
+                              <span key={p} className="rounded bg-[var(--surface-2)] border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">{p}</span>
+                            ))}
+                          </div>
+                        )}
                         {info.tools.length > 0 && (
                           <div className="mt-1.5 flex flex-wrap gap-1">
                             {info.tools.slice(0, 5).map(t => (
@@ -208,31 +220,33 @@ export function AugmentationPanel({ data, onMutate }: Props) {
                           </div>
                         )}
                       </div>
-                      <div className="ml-3 flex shrink-0 flex-col gap-1">
-                        {info.projects.map(project => (
-                          <button
-                            key={`${name}-${project}`}
-                            onClick={() => {
-                              const key = `${name}-${project}`;
-                              if (confirming === key) {
-                                onMutate({ action: "removeMCP", projectName: project, mcpName: name });
-                                setConfirming(null);
-                              } else {
-                                setConfirming(key);
-                                setTimeout(() => setConfirming(null), 3000);
-                              }
-                            }}
-                            className={`rounded p-1.5 transition-colors ${
-                              confirming === `${name}-${project}`
-                                ? "bg-red-500/20 text-red-400"
-                                : "text-[var(--muted-2)] hover:bg-[var(--surface-2)] hover:text-[var(--muted)]"
-                            }`}
-                            title={confirming === `${name}-${project}` ? `Confirm remove from ${project}` : `Remove from ${project}`}
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        ))}
-                      </div>
+                      {info.source === "local" && (
+                        <div className="ml-3 flex shrink-0 flex-col gap-1">
+                          {info.projects.map(project => (
+                            <button
+                              key={`${name}-${project}`}
+                              onClick={() => {
+                                const key = `${name}-${project}`;
+                                if (confirming === key) {
+                                  onMutate({ action: "removeMCP", projectName: project, mcpName: name });
+                                  setConfirming(null);
+                                } else {
+                                  setConfirming(key);
+                                  setTimeout(() => setConfirming(null), 3000);
+                                }
+                              }}
+                              className={`rounded p-1.5 transition-colors ${
+                                confirming === `${name}-${project}`
+                                  ? "bg-red-500/20 text-red-400"
+                                  : "text-[var(--muted-2)] hover:bg-[var(--surface-2)] hover:text-[var(--muted)]"
+                              }`}
+                              title={confirming === `${name}-${project}` ? `Confirm remove from ${project}` : `Remove from ${project}`}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
