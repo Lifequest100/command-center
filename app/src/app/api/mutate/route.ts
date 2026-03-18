@@ -4,6 +4,7 @@ import {
   removeMCPFromProject,
   removeGlobalAgent,
   removeGlobalSkill,
+  removeGlobalCommand,
 } from "@/lib/scanner";
 import { logActivity } from "@/lib/activity";
 
@@ -36,6 +37,12 @@ export async function POST(req: Request) {
         const removed = removeGlobalSkill(namespace, skillName);
         if (removed) logActivity("remove-skill", `${namespace}/${skillName}`);
         return NextResponse.json({ ok: removed, action, namespace, skillName });
+      }
+      case "removeCommand": {
+        const { namespace, commandName } = body;
+        const removed = removeGlobalCommand(namespace, commandName);
+        if (removed) logActivity("remove-command", `${namespace}/${commandName}`);
+        return NextResponse.json({ ok: removed, action, namespace, commandName });
       }
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });

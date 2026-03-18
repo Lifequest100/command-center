@@ -630,10 +630,22 @@ export function removeGlobalAgent(agentName: string): boolean {
 }
 
 export function removeGlobalSkill(namespace: string, skillName: string): boolean {
-  const skillPath = join(CLAUDE_HOME, "commands", namespace, `${skillName}.md`);
+  const skillPath = join(CLAUDE_HOME, "skills", namespace, `${skillName}.md`);
   if (existsSync(skillPath)) {
     const { unlinkSync } = require("fs");
     unlinkSync(skillPath);
+    return true;
+  }
+  return false;
+}
+
+export function removeGlobalCommand(namespace: string, commandName: string): boolean {
+  const commandPath = namespace === "root"
+    ? join(CLAUDE_HOME, "commands", `${commandName}.md`)
+    : join(CLAUDE_HOME, "commands", namespace, `${commandName}.md`);
+  if (existsSync(commandPath)) {
+    const { unlinkSync } = require("fs");
+    unlinkSync(commandPath);
     return true;
   }
   return false;
