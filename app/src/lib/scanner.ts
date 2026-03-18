@@ -226,12 +226,30 @@ function scanGlobalConfig(): GlobalConfig {
     }
   }
 
-  // Skills
-  const skills: SkillInfo[] = [];
+  // Commands (from ~/.claude/commands/)
+  const commands: CommandInfo[] = [];
   const cmdsDir = join(CLAUDE_HOME, "commands");
   if (existsSync(cmdsDir)) {
-    for (const ns of readdirSync(cmdsDir)) {
-      const nsPath = join(cmdsDir, ns);
+    for (const entry of readdirSync(cmdsDir).sort()) {
+      const entryPath = join(cmdsDir, entry);
+      if (statSync(entryPath).isDirectory()) {
+        // Namespaced subdirectory
+        for (const f of readdirSync(entryPath).filter(f => f.endsWith(".md")).sort()) {
+          commands.push({ name: f.replace(".md", ""), namespace: entry, scope: "global" });
+        }
+      } else if (entry.endsWith(".md")) {
+        // Root-level command file
+        commands.push({ name: entry.replace(".md", ""), namespace: "root", scope: "global" });
+      }
+    }
+  }
+
+  // Skills (from ~/.claude/skills/)
+  const skills: SkillInfo[] = [];
+  const skillsDir = join(CLAUDE_HOME, "skills");
+  if (existsSync(skillsDir)) {
+    for (const ns of readdirSync(skillsDir)) {
+      const nsPath = join(skillsDir, ns);
       if (statSync(nsPath).isDirectory()) {
         for (const f of readdirSync(nsPath).filter(f => f.endsWith(".md")).sort()) {
           skills.push({ name: f.replace(".md", ""), namespace: ns, scope: "global" });
@@ -240,7 +258,27 @@ function scanGlobalConfig(): GlobalConfig {
     }
   }
 
-  return { model, plugins, agents, skills, hooks };
+  // OAuth MCPs (from ~/.claude/connected-mcps.md)
+  const oauthMCPs: MCPServer[] = [];
+  const connectedMcpsPath = join(CLAUDE_HOME, "connected-mcps.md");
+  if (existsSync(connectedMcpsPath)) {
+    try {
+      const lines = readFileSync(connectedMcpsPath, "utf-8").split("\n");
+      for (const line of lines) {
+        const match = line.match(/^-\s+(.+)/);
+        if (!match) continue;
+        const raw = match[1].trim();
+        const parenIdx = raw.indexOf(" (");
+        const name = parenIdx >= 0 ? raw.slice(0, parenIdx).trim() : raw;
+        const provider = parenIdx >= 0 ? raw.slice(parenIdx + 2, raw.lastIndexOf(")")).trim() : "claude.ai";
+        if (name) {
+          oauthMCPs.push({ name, project: "global", source: "oauth", tools: [], oauthProvider: provider });
+        }
+      }
+    } catch { /* skip malformed file */ }
+  }
+
+  return { model, plugins, agents, skills, commands, hooks, oauthMCPs };
 }
 
 function detectProjectType(dir: string): string {
@@ -481,8 +519,9 @@ function scanProject(dir: string): ProjectInfo {
 export function scan(): ScanResult {
   const global = scanGlobalConfig();
   const projects: ProjectInfo[] = [];
-  const allMCPs: MCPServer[] = [];
+  const allMCPs: MCPServer[] = [...global.oauthMCPs];
   const allSkills: SkillInfo[] = [...global.skills];
+  const allCommands: CommandInfo[] = [...global.commands];
   const allAgents: AgentInfo[] = [...global.agents];
 
   const seen = new Set<string>();
@@ -520,6 +559,7 @@ export function scan(): ScanResult {
     projects,
     allMCPs,
     allSkills,
+    allCommands,
     allAgents,
     allPlugins: global.plugins,
   };
